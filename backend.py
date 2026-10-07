@@ -194,8 +194,10 @@ def parse_snapshot(xml):
 
 
 def parse_activity(output):
-    """Missing/unsupported pmon readings are unknown, not proof of idleness."""
+    """Infer quiet dash rows only with numeric SM evidence on the same GPU/sample."""
     readings = {}
+    sampled_gpus = set()
+    dash_rows = set()
     columns = ["gpu", "pid", "type", "sm", "mem", "enc", "dec", "jpg", "ofa", "command"]
     for line in output.splitlines():
         parts = line.split()
@@ -212,14 +214,22 @@ def parse_activity(output):
                 for c in ("sm", "mem", "enc", "dec", "jpg", "ofa")
                 if fields.get(c, "-").isdigit()
             ]
-            if any(values):
-                readings[key] = max(values)
-            elif fields.get("sm", "-").isdigit() and fields.get("mem", "-").isdigit():
-                readings[key] = 0
-            else:
-                readings[key] = None
+            if fields.get("sm", "-").isdigit():
+                sampled_gpus.add(key[0])
+            readings[key] = max(values) if values else None
+            engines = [
+                fields[c]
+                for c in ("sm", "mem", "enc", "dec", "jpg", "ofa")
+                if c in fields
+            ]
+            if engines and all(value == "-" for value in engines):
+                dash_rows.add(key)
         except ValueError:
             continue
+    # Resolve after reading all rows: a numeric row may follow a dash-only row.
+    for key in dash_rows:
+        if key[0] in sampled_gpus:
+            readings[key] = 0
     return readings
 
 
@@ -396,7 +406,7 @@ PROTECTED = {
     "lightdm",
 }
 
-VERSION = "0.1.0-beta.2"
+VERSION = "0.1.0-beta.3"
 DEFAULTS = {
     "minimum": 100,
     "idle_minutes": 10,

@@ -4,7 +4,7 @@
 
 See which apps hold your GPU memory, with live CPU/RAM context and optional idle alerts from a small top-bar app. Built for **Ubuntu + NVIDIA**. Nothing is stopped automatically.
 
-**[Download the Ubuntu beta](https://github.com/Elhelali/vram-manager/releases/tag/v0.1.0-beta.2)** · [Resource usage](docs/RESOURCE_USE.md)
+**[Download the Ubuntu beta](https://github.com/Elhelali/vram-manager/releases/tag/v0.1.0-beta.3)** · [Resource usage](docs/RESOURCE_USE.md)
 
 ![VRAM Manager showing Ollama holding 8.2 GiB, quiet for 42 minutes, with an example idle alert](docs/screenshot.png)
 
@@ -15,7 +15,7 @@ See which apps hold your GPU memory, with live CPU/RAM context and optional idle
 Download the `.deb` and `SHA256SUMS` from [GitHub Releases](https://github.com/Elhelali/vram-manager/releases). In your download folder:
 
 ```sh
-sudo apt install ./vram-manager_0.1.0-beta2_all.deb
+sudo apt install ./vram-manager_0.1.0-beta3_all.deb
 ```
 
 Open **VRAM Manager** from Applications, or run `vram-manager`. You need an NVIDIA driver that provides a working `nvidia-smi`. The installer does not choose or replace your GPU driver. This beta targets Ubuntu 24.04; its hardware baseline is RTX 5070 with NVIDIA 580.178.04. Other GPUs/drivers and multi-GPU setups need further hardware testing. AMD, Intel, Windows and macOS are unsupported.
@@ -38,7 +38,7 @@ Upgrade by installing the newer `.deb` the same way. Uninstall with `sudo apt re
 
 Alerts are opt-in for new installs; existing preferences are preserved. An app holding at least your chosen VRAM threshold (default 1024 MiB / 1 GiB) can trigger an alert after ten minutes with no GPU activity and near-zero CPU (under 5% of one core, since servers that keep models loaded still tick over in the background). Duration is adjustable. Qualifying processes are combined into one banner, with at most one automatic banner per hour across the whole app, including after restart. Automatic banners are suppressed while locked or in Do Not Disturb, and when desktop state cannot be checked. Suppressed alerts are not queued for later delivery. Banners are transient and offer **Review**; **Snooze 1 hour** and **Ignore app** remain in the window. Protected desktop processes do not trigger idle alerts.
 
-**Unknown is not idle.** NVIDIA's `pmon` dashes may mean unsupported metrics or a query error; they never count as zero. Quiet requires numeric zero SM and memory activity, no positive reported GPU engine activity, and CPU below 5% of one core. Missing readings, CPU at or above 5%, observed GPU work, query errors, replaced processes and sampling gaps reset the timer. Some drivers cannot provide reliable per-process samples, so idle alerts will not fire for those processes. Alerts are advisory and never stop anything automatically.
+**Unknown is not idle.** A listed process showing only dashes counts as no observed GPU activity only when the same sample includes a numeric SM reading for another process on that GPU. This is an inference from the other readings, not a direct zero measurement. If that GPU has no numeric SM readings, its dash-only processes stay Unknown and cannot trigger alerts. Missing processes, failed queries and empty output also stay Unknown. Quiet additionally requires CPU below 5% of one core; observed GPU activity, higher CPU, missing readings and sampling gaps reset the timer. Drivers that never report per-process numbers cannot produce idle alerts. Nothing is stopped automatically.
 
 **VRAM Manager starts in the top bar by default**, with the GPU logo and live VRAM use. Click it to open the full window, enable/disable alerts, pause all alerts for one hour, or quit. Closing the window returns to the indicator; only **Quit VRAM Manager** stops monitoring. It starts automatically at desktop login, including after reboot; **Start at login** in the indicator menu controls this. The desktop session must be running. A desktop without an indicator host falls back to the window. Desktop Do Not Disturb can hide banners; **Test notification** checks delivery.
 

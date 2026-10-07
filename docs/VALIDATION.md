@@ -26,3 +26,9 @@ Notification hardening: 20 unit tests pass. GUI fixtures verify seven simultaneo
 Final public-beta package: clean Ubuntu 24.04 dependency installation, all 20 unit tests, installed GUI fixtures as unprivileged nobody, desktop-file validation and complete removal passed.
 
 Public release CI passed unit tests, GUI fixtures, package building, package installation, installed GUI checks and removal: https://github.com/Elhelali/vram-manager/actions/runs/37672085866
+
+## Beta.3
+
+The updated regression suite produced four failures against beta.2, then passed all 27 tests with the per-GPU, per-sample parser. Existing all-dash and failure safeguards remain passing. The captured idle-server fixture alerts exactly at 600 seconds and does not repeat on the following sample. Multi-GPU isolation, row ordering, numeric-zero engines, unlisted processes and empty/failed queries are covered. GUI checks cover Quiet at 1.2% CPU, Unknown GPU activity, the 5% CPU boundary and positive GPU activity.
+
+Five live snapshots, with two-second pauses on the reference RTX 5070 / driver 580 machine: the 2908 MiB Gradio process had activity zero throughout and CPU 0.94–1.41% after the initial unknown CPU interval. Brave and protected Xorg were not quiet. Claude's sampled GPU process was quiet during this observation (zero CPU/activity); it was not a busy-process validation case and its allocation was below the default alert threshold. The ten-minute alert timing is regression-tested, not a ten-minute live notification experiment.

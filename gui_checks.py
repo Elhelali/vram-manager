@@ -57,6 +57,19 @@ def main():
             assert len(window.sorted) == 2
             assert window.sorted[0][9] == 512
             assert window.sorted[0][10] == 12.5
+            for activity, cpu, expected in (
+                (0, 1.2, "Quiet · 0m"),
+                (None, 1.2, "Unknown"),
+                (0, 5.0, "0% observed"),
+                (2, 1.2, "2% observed"),
+            ):
+                a.activity = activity
+                a.cpu_percent = cpu
+                window.render()
+                assert window.sorted[0][5] == expected
+            a.activity = 0
+            a.cpu_percent = 12.5
+            window.render()
             window.tree.get_selection().select_iter(window.sorted[0].iter)
             assert window.quit_button.get_sensitive()
             reference = Gtk.TreeRowReference.new(window.store, window.store[0].path)

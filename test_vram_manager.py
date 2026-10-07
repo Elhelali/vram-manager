@@ -57,11 +57,11 @@ class ManagerTests(unittest.TestCase):
         self.assertEqual([(p.pid, p.memory) for p in processes], [(10, 150), (11, 200)])
         self.assertEqual(processes[0].gpu, "GPU (0), GPU (1)")
 
-    def test_listed_dashes_and_unlisted_are_unknown(self):
+    def test_supported_sample_dashes_quiet_unlisted_unknown(self):
         readings = parse_activity(
             "0 10 C - - - - - - python\n0 11 C 0 0 - - - - python\n0 12 G 0 0 20 - - - video"
         )
-        self.assertIsNone(readings[(0, 10)])
+        self.assertEqual(readings[(0, 10)], 0)
         self.assertEqual(readings[(0, 11)], 0)
         self.assertEqual(readings[(0, 12)], 20)
         unlisted = Process(13, "Test", 200, "GPU", "C", gpu_indices=(0,))
@@ -88,7 +88,7 @@ class ManagerTests(unittest.TestCase):
         )
         readings = parse_activity(output)
         self.assertEqual(readings[(0, 4474)], 2)
-        self.assertIsNone(readings[(0, 3955346)])
+        self.assertEqual(readings[(0, 3955346)], 0)
         server = Process(
             3955346, "Python", 2908, "GPU", "C", started="s", gpu_indices=(0,)
         )
@@ -99,16 +99,70 @@ class ManagerTests(unittest.TestCase):
             self.assertEqual(
                 tracker.update([server], now, minutes=10, minimum=1024), []
             )
-        self.assertEqual(tracker.update([server], 600, minutes=10, minimum=1024), [])
-        # A measured zero with low background CPU is eligible; dashes are not.
-        server.activity = 0
-        for now in range(602, 1202, 2):
+        self.assertEqual(
+            tracker.update([server], 600, minutes=10, minimum=1024), [server]
+        )
+        self.assertEqual(tracker.update([server], 602, minutes=10, minimum=1024), [])
+
+    def test_all_dash_sample_stays_unknown_and_never_alerts(self):
+        readings = parse_activity("0 10 C - - - - - - python\n0 11 G - - - - - - Xorg")
+        self.assertEqual(readings, {(0, 10): None, (0, 11): None})
+        server = Process(
+            10,
+            "Server",
+            2908,
+            "GPU",
+            "C",
+            started="s",
+            gpu_indices=(0,),
+            cpu_percent=1.2,
+        )
+        server.activity = process_activity(server, readings)
+        tracker = IdleTracker()
+        for now in range(0, 1202, 2):
             self.assertEqual(
                 tracker.update([server], now, minutes=10, minimum=1024), []
             )
-        self.assertEqual(
-            tracker.update([server], 1202, minutes=10, minimum=1024), [server]
+
+    def test_numeric_support_is_per_gpu_and_order_independent(self):
+        lines = [
+            "0 10 C - - - - - - python",
+            "1 11 C - - - - - - python",
+            "0 12 G 2 0 - - - - desktop",
+        ]
+        for rows in (lines, list(reversed(lines))):
+            self.assertEqual(
+                parse_activity("\n".join(rows)), {(0, 10): 0, (1, 11): None, (0, 12): 2}
+            )
+
+    def test_numeric_engine_without_sm_does_not_enable_dash_rows(self):
+        readings = parse_activity(
+            "0 10 C - - - - - - python\n0 11 G - - 0 - - - encoder"
         )
+        self.assertEqual(readings, {(0, 10): None, (0, 11): 0})
+
+    def test_empty_and_failed_pmon_stay_unknown(self):
+        from unittest.mock import patch
+        from backend import snapshot
+
+        server = Process(10, "Server", 2908, "GPU", "C", gpu_indices=(0,))
+        for output in (
+            "",
+            "# gpu pid type sm mem enc dec command\n",
+            "0 - - - - - - - - -",
+        ):
+            self.assertEqual(parse_activity(output), {})
+            self.assertIsNone(process_activity(server, parse_activity(output)))
+        xml = "<nvidia_smi_log><gpu><processes><process_info><pid>10</pid><used_memory>2908 MiB</used_memory></process_info></processes></gpu></nvidia_smi_log>"
+        with patch(
+            "backend.subprocess.run",
+            side_effect=[
+                subprocess.CompletedProcess([], 0, stdout=xml),
+                subprocess.CalledProcessError(1, "nvidia-smi"),
+            ],
+        ):
+            _, processes, _ = snapshot()
+        self.assertIsNone(processes[0].activity)
 
     def test_idle_alert_once_and_reset(self):
         tracker = IdleTracker()
