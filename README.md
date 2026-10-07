@@ -8,7 +8,7 @@ See which apps hold your GPU memory, with live CPU/RAM context and optional idle
 
 ![VRAM Manager showing Ollama holding 8.2 GiB, quiet for 42 minutes, with an example idle alert](docs/screenshot.png)
 
-*Illustrative demo data with an example notification preview. “Quiet” means no CPU or GPU activity observed in samples; an app may still be waiting or intentionally keeping a model loaded. Alerts are opt-in, with adjustable memory and duration thresholds.*
+*Illustrative demo data with an example notification preview. “Quiet” means no GPU activity and near-zero CPU observed in samples; an app may still be waiting or intentionally keeping a model loaded. Alerts are opt-in, with adjustable memory and duration thresholds.*
 
 ## Install the Ubuntu 24.04 beta
 
@@ -36,9 +36,9 @@ Upgrade by installing the newer `.deb` the same way. Uninstall with `sudo apt re
 
 ## Idle alerts and background monitoring
 
-Alerts are opt-in for new installs; existing preferences are preserved. An app holding at least your chosen VRAM threshold (default 1024 MiB / 1 GiB) can trigger an alert after ten minutes of known zero CPU and GPU activity samples. Duration is adjustable. Qualifying processes are combined into one banner, with at most one automatic banner per hour across the whole app, including after restart. Automatic banners are suppressed while locked or in Do Not Disturb, and when desktop state cannot be checked. Suppressed alerts are not queued for later delivery. Banners are transient and offer **Review**; **Snooze 1 hour** and **Ignore app** remain in the window. Protected desktop processes do not trigger idle alerts.
+Alerts are opt-in for new installs; existing preferences are preserved. An app holding at least your chosen VRAM threshold (default 1024 MiB / 1 GiB) can trigger an alert after ten minutes with no GPU activity and near-zero CPU (under 5% of one core, since servers that keep models loaded still tick over in the background). Duration is adjustable. Qualifying processes are combined into one banner, with at most one automatic banner per hour across the whole app, including after restart. Automatic banners are suppressed while locked or in Do Not Disturb, and when desktop state cannot be checked. Suppressed alerts are not queued for later delivery. Banners are transient and offer **Review**; **Snooze 1 hour** and **Ignore app** remain in the window. Protected desktop processes do not trigger idle alerts.
 
-**Unknown is not idle.** NVIDIA may report memory allocations without usable activity readings. Missing CPU or GPU readings, any observed CPU or GPU work, query errors, replaced processes and long sampling gaps reset the idle timer. Brief bursts can be missed; apps may be doing CPU work or intentionally retaining models. Alerts are advisory and never stop anything automatically.
+**Unknown is not idle.** NVIDIA's process monitor prints `-` for an engine a listed process did not use during the sample; VRAM Manager reads that as no activity. A process the monitor does not list at all stays Unknown. Missing CPU or GPU readings, any observed CPU or GPU work, query errors, replaced processes and long sampling gaps reset the idle timer. Brief bursts can be missed; apps may be doing CPU work or intentionally retaining models. Alerts are advisory and never stop anything automatically.
 
 **VRAM Manager starts in the top bar by default**, with the GPU logo and live VRAM use. Click it to open the full window, enable/disable alerts, pause all alerts for one hour, or quit. Closing the window returns to the indicator; only **Quit VRAM Manager** stops monitoring. It starts automatically at desktop login, including after reboot; **Start at login** in the indicator menu controls this. The desktop session must be running. A desktop without an indicator host falls back to the window. Desktop Do Not Disturb can hide banners; **Test notification** checks delivery.
 

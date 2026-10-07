@@ -7,7 +7,7 @@ A native Ubuntu app showing which NVIDIA GPU processes hold memory, with deliber
 - Named GPUs, free/used totals and ten-minute memory history.
 - Stable rows and selection, sorting and search.
 - Saved thresholds, alert preferences, ignored apps, sorting and window size.
-- Opt-in advisory idle alerts, requiring known zero CPU and GPU readings and batched into at most one automatic banner per hour across restarts. Locked-screen/DND suppression and transient banners prevent notification buildup.
+- Opt-in advisory idle alerts, requiring no observed GPU activity and near-zero CPU and batched into at most one automatic banner per hour across restarts. Locked-screen/DND suppression and transient banners prevent notification buildup.
 - Branded top-bar indicator with live VRAM, one-hour global alert pause, and automatic login startup. Closing the window keeps monitoring; Quit stops it.
 - Adjustable alert VRAM threshold (default 1 GiB) and duration (default 10 minutes), plus Review and in-window Snooze/Ignore controls.
 - Protected desktop processes, PID-bound signaling, exit feedback and possible-restart detection.

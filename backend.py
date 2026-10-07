@@ -57,6 +57,9 @@ def metadata(pid):
 
 
 def decorate(process):
+    # The name NVIDIA reports, kept for the protection check below: the executable
+    # path can be unreadable for processes owned by another user (e.g. a root Xorg).
+    reported = Path(process.name.split()[0]).name.lower() if process.name.split() else ""
     try:
         process.started, parent = identity(process.pid)
         args, executable = metadata(process.pid)
@@ -130,7 +133,9 @@ def decorate(process):
         pass
     # Desktop components stay visible, but cannot be terminated by this app.
     process.protected = (
-        process.protected or Path(process.executable).name.lower() in PROTECTED
+        process.protected
+        or Path(process.executable).name.lower() in PROTECTED
+        or reported in PROTECTED
     )
     return process
 
@@ -187,7 +192,11 @@ def parse_snapshot(xml):
 
 
 def parse_activity(output):
-    """Return per-device readings; missing samples are not proof of idleness."""
+    """Return per-device readings for every process pmon lists.
+
+    pmon prints "-" for an engine a listed process did not use during the sample,
+    so a listed row with only dashes reads as zero activity. Processes pmon does not
+    list at all stay unknown (absent from the result)."""
     readings = {}
     columns = ["gpu", "pid", "type", "sm", "mem", "enc", "dec", "jpg", "ofa", "command"]
     for line in output.splitlines():
@@ -205,13 +214,7 @@ def parse_activity(output):
                 for c in ("sm", "mem", "enc", "dec", "jpg", "ofa")
                 if fields.get(c, "-").isdigit()
             ]
-            if any(values):
-                value = max(values)
-            elif fields.get("sm", "-").isdigit() and fields.get("mem", "-").isdigit():
-                value = 0
-            else:
-                value = None
-            readings[key] = value
+            readings[key] = max(values) if values else 0
         except ValueError:
             continue
     return readings
@@ -265,6 +268,11 @@ class ResourceTracker:
 RESOURCE_TRACKER = ResourceTracker()
 
 
+# Below this much CPU (percent of one core) a process counts as idle. Servers that
+# hold models keep background threads ticking (heartbeats, event loops, ~1%).
+IDLE_CPU_PERCENT = 5.0
+
+
 class IdleTracker:
     def __init__(self):
         self.states = {}
@@ -295,7 +303,7 @@ class IdleTracker:
                 or p.activity is None
                 or p.activity > 0
                 or p.cpu_percent is None
-                or p.cpu_percent > 0
+                or p.cpu_percent >= IDLE_CPU_PERCENT
             ):
                 self.states.pop(key, None)
                 p.idle_seconds = 0

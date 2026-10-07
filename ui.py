@@ -16,6 +16,7 @@ from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Notify, Pango
 
 from backend import (
     AlertBudget,
+    IDLE_CPU_PERCENT,
     IdleTracker,
     QuitWatch,
     Settings,
@@ -603,7 +604,7 @@ class Window(Gtk.ApplicationWindow):
                     if p.activity
                     else (
                         f"Quiet · {int(p.idle_seconds // 60)}m"
-                        if p.cpu_percent == 0
+                        if p.cpu_percent is not None and p.cpu_percent < IDLE_CPU_PERCENT
                         else "0% observed"
                     )
                 )
