@@ -51,8 +51,8 @@ def main():
     sys.path.insert(0, str(ROOT))
     import autostart
 
-    if not autostart.path().exists():
-        autostart.set_enabled(True, [str(launcher)])
+    startup_enabled = autostart.enabled() if autostart.path().exists() else True
+    autostart.set_enabled(startup_enabled, [str(launcher)])
     print(f"Installed for current user: {launcher}")
 
 
