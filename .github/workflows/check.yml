@@ -5,10 +5,11 @@ permissions:
 jobs:
   beta:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Install desktop test dependencies
-        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-ayatanaappindicator3-0.1 librsvg2-common desktop-file-utils xvfb dbus-x11
+        run: sudo apt-get -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 -o Acquire::Retries=2 update && sudo apt-get -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 -o Acquire::Retries=2 install -y python3-gi gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-ayatanaappindicator3-0.1 librsvg2-common desktop-file-utils xvfb dbus-x11
       - name: Unit tests
         run: /usr/bin/python3 -m unittest discover -s . -p 'test_*.py' -v
       - name: Desktop fixture tests
