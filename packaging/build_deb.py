@@ -37,7 +37,7 @@ def build():
         shutil.copytree(ROOT / "assets", app / "assets")
         targets = {
             "packaging/vram-manager": "usr/bin/vram-manager",
-            "packaging/vram-manager.desktop": "usr/share/applications/vram-manager.desktop",
+            "packaging/vram-manager.desktop": "usr/share/applications/io.github.Elhelali.VramManager.desktop",
             "assets/vram-manager.svg": "usr/share/icons/hicolor/scalable/apps/vram-manager.svg",
             "README.md": "usr/share/doc/vram-manager/README.md",
         }

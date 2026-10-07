@@ -59,7 +59,9 @@ def metadata(pid):
 def decorate(process):
     # The name NVIDIA reports, kept for the protection check below: the executable
     # path can be unreadable for processes owned by another user (e.g. a root Xorg).
-    reported = Path(process.name.split()[0]).name.lower() if process.name.split() else ""
+    reported = (
+        Path(process.name.split()[0]).name.lower() if process.name.split() else ""
+    )
     try:
         process.started, parent = identity(process.pid)
         args, executable = metadata(process.pid)
@@ -192,11 +194,7 @@ def parse_snapshot(xml):
 
 
 def parse_activity(output):
-    """Return per-device readings for every process pmon lists.
-
-    pmon prints "-" for an engine a listed process did not use during the sample,
-    so a listed row with only dashes reads as zero activity. Processes pmon does not
-    list at all stay unknown (absent from the result)."""
+    """Missing/unsupported pmon readings are unknown, not proof of idleness."""
     readings = {}
     columns = ["gpu", "pid", "type", "sm", "mem", "enc", "dec", "jpg", "ofa", "command"]
     for line in output.splitlines():
@@ -214,7 +212,12 @@ def parse_activity(output):
                 for c in ("sm", "mem", "enc", "dec", "jpg", "ofa")
                 if fields.get(c, "-").isdigit()
             ]
-            readings[key] = max(values) if values else 0
+            if any(values):
+                readings[key] = max(values)
+            elif fields.get("sm", "-").isdigit() and fields.get("mem", "-").isdigit():
+                readings[key] = 0
+            else:
+                readings[key] = None
         except ValueError:
             continue
     return readings
@@ -393,7 +396,7 @@ PROTECTED = {
     "lightdm",
 }
 
-VERSION = "0.1.0-beta.1"
+VERSION = "0.1.0-beta.2"
 DEFAULTS = {
     "minimum": 100,
     "idle_minutes": 10,

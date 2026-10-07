@@ -38,9 +38,11 @@ def main():
         .replace("%", "%%")
     )
     desktop = desktop.replace("Exec=vram-manager", f'Exec="{escaped}"')
-    target = PREFIX / "share/applications/vram-manager.desktop"
+    desktop = desktop.replace("TryExec=vram-manager", f"TryExec={launcher}")
+    target = PREFIX / "share/applications/io.github.Elhelali.VramManager.desktop"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(desktop)
+    (PREFIX / "share/applications/vram-manager.desktop").unlink(missing_ok=True)
     icon = PREFIX / "share/icons/hicolor/scalable/apps/vram-manager.svg"
     icon.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "assets/vram-manager.svg", icon)
