@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=VRAM Manager
+Comment=See GPU memory usage and quit apps
+Exec=vram-manager
+Icon=vram-manager
+Terminal=false
+Categories=System;Monitor;
+Keywords=GPU;VRAM;NVIDIA;memory;
+StartupNotify=true
+StartupWMClass=VRAM Manager

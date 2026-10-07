@@ -1,0 +1,24 @@
+name: Check and package
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  beta:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install desktop test dependencies
+        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-ayatanaappindicator3-0.1 librsvg2-common desktop-file-utils xvfb dbus-x11
+      - name: Unit tests
+        run: /usr/bin/python3 -m unittest discover -s . -p 'test_*.py' -v
+      - name: Desktop fixture tests
+        run: xvfb-run -a dbus-run-session -- /usr/bin/python3 gui_checks.py
+      - name: Validate launcher and build package
+        run: |
+          desktop-file-validate packaging/vram-manager.desktop
+          /usr/bin/python3 packaging/build_deb.py
+          dpkg-deb --info dist/*.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vram-manager-beta
+          path: dist/
