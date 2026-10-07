@@ -24,3 +24,5 @@ Indicator update: 18 unit tests pass, including configurable alert VRAM and logi
 Notification hardening: 20 unit tests pass. GUI fixtures verify seven simultaneous candidates produce one combined banner, further attempts are suppressed, and desktop suppression prevents delivery. The persisted cooldown survives restart and suppresses alerts after clock rollback; failed settings persistence prevents sending. The desktop decision code is also fixture-tested with locked/unlocked, Do Not Disturb and unavailable-desktop responses. Physical lock/unlock and a long-duration soak remain manual beta follow-up.
 
 Final public-beta package: clean Ubuntu 24.04 dependency installation, all 20 unit tests, installed GUI fixtures as unprivileged nobody, desktop-file validation and complete removal passed.
+
+Public release CI passed unit tests, GUI fixtures, package building, package installation, installed GUI checks and removal: https://github.com/Elhelali/vram-manager/actions/runs/37672085866

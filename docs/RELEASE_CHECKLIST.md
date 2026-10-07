@@ -18,8 +18,8 @@
 
 - [x] Owner confirms GitHub repository and license
 - [x] Apply approved license and replace pending-license text
-- [ ] Run final checks and rebuild release assets/checksums
-- [ ] Create repository, push reviewed source and run GitHub CI
-- [ ] Create prerelease v0.1.0-beta.1 with package, source, checksums and release notes
+- [x] Run final checks and rebuild release assets/checksums
+- [x] Create repository, push reviewed source and run GitHub CI
+- [x] Create prerelease v0.1.0-beta.1 with package, source, checksums and release notes
 
 Additional NVIDIA drivers, Wayland and multi-GPU hardware are beta follow-up. AppImage, Snap and job queuing are later releases.

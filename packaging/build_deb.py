@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT))
 from backend import VERSION
 
 DEB_VERSION = VERSION.replace("-beta.", "~beta")
+ARTIFACT_VERSION = DEB_VERSION.replace("~", "-")
 
 
 def build():
@@ -86,7 +87,7 @@ Description: NVIDIA GPU memory monitor and process manager
             path.chmod(0o755 if path.is_dir() else 0o644)
         (stage / "usr/bin/vram-manager").chmod(0o755)
         prerm.chmod(0o755)
-        output = dist / f"vram-manager_{DEB_VERSION}_all.deb"
+        output = dist / f"vram-manager_{ARTIFACT_VERSION}_all.deb"
         subprocess.run(
             ["dpkg-deb", "--root-owner-group", "--build", str(stage), str(output)],
             check=True,

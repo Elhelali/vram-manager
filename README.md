@@ -11,7 +11,7 @@ A small native Linux desktop app for NVIDIA GPUs. Lists graphics **and** compute
 Download the `.deb` and `SHA256SUMS` from [GitHub Releases](https://github.com/Elhelali/vram-manager/releases). In your download folder:
 
 ```sh
-sudo apt install ./vram-manager_0.1.0~beta1_all.deb
+sudo apt install ./vram-manager_0.1.0-beta1_all.deb
 ```
 
 Open **VRAM Manager** from Applications, or run `vram-manager`. You need an NVIDIA driver that provides a working `nvidia-smi`. The installer does not choose or replace your GPU driver. This beta targets Ubuntu 24.04; its hardware baseline is RTX 5070 with NVIDIA 580.178.04. Other GPUs/drivers and multi-GPU setups need further hardware testing. AMD, Intel, Windows and macOS are unsupported.
