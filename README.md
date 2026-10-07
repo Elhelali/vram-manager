@@ -1,10 +1,14 @@
 # VRAM Manager
 
-See what holds your GPU memory. Quit the apps you choose.
+**Ollama is still holding 8 GB of VRAM, 40 minutes after you stopped using it.** VRAM Manager can flag prolonged inactivity and let you quit the process when you choose.
 
-A small native Linux desktop app for NVIDIA GPUs. Lists graphics **and** compute processes using at least 100 MiB, with readable names, installed app icons, live CPU/RAM context, memory history, and optional idle alerts.
+See which apps hold your GPU memory, with live CPU/RAM context and optional idle alerts from a small top-bar app. Built for **Ubuntu + NVIDIA**. Nothing is stopped automatically.
 
-![VRAM Manager interface — illustrative demo data](docs/screenshot.png)
+**[Download the Ubuntu beta](https://github.com/Elhelali/vram-manager/releases/tag/v0.1.0-beta.1)** · [Resource usage](docs/RESOURCE_USE.md)
+
+![VRAM Manager showing Ollama holding 8.2 GiB, quiet for 42 minutes, with an example idle alert](docs/screenshot.png)
+
+*Illustrative demo data with an example notification preview. “Quiet” means no CPU or GPU activity observed in samples; an app may still be waiting or intentionally keeping a model loaded. Alerts are opt-in, with adjustable memory and duration thresholds.*
 
 ## Install the Ubuntu 24.04 beta
 
