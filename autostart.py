@@ -32,15 +32,20 @@ def quote(argument):
 
 
 def set_enabled(value, command=None):
-    command = command or [
-        sys.executable,
-        str(Path(__file__).parent / "vram_manager.py"),
-    ]
+    if command is None:
+        location = Path(__file__).resolve().parent
+        if location == Path("/usr/share/vram-manager"):
+            command = ["/usr/bin/vram-manager"]
+        elif location == Path.home() / ".local/share/vram-manager":
+            command = [str(Path.home() / ".local/bin/vram-manager")]
+        else:
+            command = [sys.executable, str(location / "vram_manager.py")]
     target = path()
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
         "[Desktop Entry]\nType=Application\nName=VRAM Manager\n"
         f'Exec={" ".join(quote(arg) for arg in command)}\n'
+        f"TryExec={command[0]}\n"
         "Icon=vram-manager\nTerminal=false\n"
         f'Hidden={"false" if value else "true"}\n'
         "X-GNOME-Autostart-Delay=5\n"

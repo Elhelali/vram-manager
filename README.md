@@ -1,21 +1,21 @@
 # VRAM Manager
 
-**Ollama is still holding 8 GB of VRAM, 40 minutes after you stopped using it.** VRAM Manager can flag prolonged inactivity and let you quit the process when you choose.
+**Your local AI server is still holding 8 GB of VRAM, 40 minutes after you stopped using it.** VRAM Manager can flag prolonged inactivity and let you quit the process when you choose.
 
 See which apps hold your GPU memory, with live CPU/RAM context and optional idle alerts from a small top-bar app. Built for **Ubuntu + NVIDIA**. Nothing is stopped automatically.
 
-**[Download the Ubuntu beta](https://github.com/Elhelali/vram-manager/releases/tag/v0.1.0-beta.1)** · [Resource usage](docs/RESOURCE_USE.md)
+**[Download the Ubuntu beta](https://github.com/Elhelali/vram-manager/releases/tag/v0.1.0-beta.2)** · [Resource usage](docs/RESOURCE_USE.md)
 
 ![VRAM Manager showing Ollama holding 8.2 GiB, quiet for 42 minutes, with an example idle alert](docs/screenshot.png)
 
-*Illustrative demo data with an example notification preview. “Quiet” means no CPU or GPU activity observed in samples; an app may still be waiting or intentionally keeping a model loaded. Alerts are opt-in, with adjustable memory and duration thresholds.*
+*Illustrative demo data with an example notification preview. “Quiet” means no GPU activity and near-zero CPU observed in samples; an app may still be waiting or intentionally keeping a model loaded. Alerts are opt-in, with adjustable memory and duration thresholds.*
 
 ## Install the Ubuntu 24.04 beta
 
 Download the `.deb` and `SHA256SUMS` from [GitHub Releases](https://github.com/Elhelali/vram-manager/releases). In your download folder:
 
 ```sh
-sudo apt install ./vram-manager_0.1.0-beta1_all.deb
+sudo apt install ./vram-manager_0.1.0-beta2_all.deb
 ```
 
 Open **VRAM Manager** from Applications, or run `vram-manager`. You need an NVIDIA driver that provides a working `nvidia-smi`. The installer does not choose or replace your GPU driver. This beta targets Ubuntu 24.04; its hardware baseline is RTX 5070 with NVIDIA 580.178.04. Other GPUs/drivers and multi-GPU setups need further hardware testing. AMD, Intel, Windows and macOS are unsupported.
@@ -36,9 +36,9 @@ Upgrade by installing the newer `.deb` the same way. Uninstall with `sudo apt re
 
 ## Idle alerts and background monitoring
 
-Alerts are opt-in for new installs; existing preferences are preserved. An app holding at least your chosen VRAM threshold (default 1024 MiB / 1 GiB) can trigger an alert after ten minutes of known zero CPU and GPU activity samples. Duration is adjustable. Qualifying processes are combined into one banner, with at most one automatic banner per hour across the whole app, including after restart. Automatic banners are suppressed while locked or in Do Not Disturb, and when desktop state cannot be checked. Suppressed alerts are not queued for later delivery. Banners are transient and offer **Review**; **Snooze 1 hour** and **Ignore app** remain in the window. Protected desktop processes do not trigger idle alerts.
+Alerts are opt-in for new installs; existing preferences are preserved. An app holding at least your chosen VRAM threshold (default 1024 MiB / 1 GiB) can trigger an alert after ten minutes with no GPU activity and near-zero CPU (under 5% of one core, since servers that keep models loaded still tick over in the background). Duration is adjustable. Qualifying processes are combined into one banner, with at most one automatic banner per hour across the whole app, including after restart. Automatic banners are suppressed while locked or in Do Not Disturb, and when desktop state cannot be checked. Suppressed alerts are not queued for later delivery. Banners are transient and offer **Review**; **Snooze 1 hour** and **Ignore app** remain in the window. Protected desktop processes do not trigger idle alerts.
 
-**Unknown is not idle.** NVIDIA may report memory allocations without usable activity readings. Missing CPU or GPU readings, any observed CPU or GPU work, query errors, replaced processes and long sampling gaps reset the idle timer. Brief bursts can be missed; apps may be doing CPU work or intentionally retaining models. Alerts are advisory and never stop anything automatically.
+**Unknown is not idle.** NVIDIA's `pmon` dashes may mean unsupported metrics or a query error; they never count as zero. Quiet requires numeric zero SM and memory activity, no positive reported GPU engine activity, and CPU below 5% of one core. Missing readings, CPU at or above 5%, observed GPU work, query errors, replaced processes and sampling gaps reset the timer. Some drivers cannot provide reliable per-process samples, so idle alerts will not fire for those processes. Alerts are advisory and never stop anything automatically.
 
 **VRAM Manager starts in the top bar by default**, with the GPU logo and live VRAM use. Click it to open the full window, enable/disable alerts, pause all alerts for one hour, or quit. Closing the window returns to the indicator; only **Quit VRAM Manager** stops monitoring. It starts automatically at desktop login, including after reboot; **Start at login** in the indicator menu controls this. The desktop session must be running. A desktop without an indicator host falls back to the window. Desktop Do Not Disturb can hide banners; **Test notification** checks delivery.
 
@@ -73,3 +73,5 @@ v0.2: saved workloads and a queue that waits for free VRAM, with logs, cancellat
 Released under the [MIT license](LICENSE).
 
 Other Linux distributions with NVIDIA GPUs are the nearest portability target, through dependency packaging and desktop testing. AMD/Intel require additional monitoring backends. Windows needs native process/GPU monitoring and desktop integration; macOS needs a feasibility study for system-wide GPU memory visibility and unified-memory reporting. These platforms are not currently supported or scheduled.
+
+For a per-user install, run `/usr/bin/python3 packaging/uninstall_user.py` from the source checkout to remove the app, launcher, icons and login entry. Settings are retained. System packages remove their system login entry; per-user opt-out preferences may remain, and `TryExec` prevents startup when the executable is absent.

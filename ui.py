@@ -16,6 +16,7 @@ from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Notify, Pango
 
 from backend import (
     AlertBudget,
+    IDLE_CPU_PERCENT,
     IdleTracker,
     QuitWatch,
     Settings,
@@ -603,7 +604,8 @@ class Window(Gtk.ApplicationWindow):
                     if p.activity
                     else (
                         f"Quiet · {int(p.idle_seconds // 60)}m"
-                        if p.cpu_percent == 0
+                        if p.cpu_percent is not None
+                        and p.cpu_percent < IDLE_CPU_PERCENT
                         else "0% observed"
                     )
                 )
@@ -679,7 +681,9 @@ class Window(Gtk.ApplicationWindow):
 
     def notification(self, title, body, key, actions=()):
         notification = Notify.Notification.new(title, html.escape(body), "vram-manager")
-        notification.set_hint("desktop-entry", GLib.Variant("s", "vram-manager"))
+        notification.set_hint(
+            "desktop-entry", GLib.Variant("s", "io.github.Elhelali.VramManager")
+        )
         notification.set_hint("transient", GLib.Variant("b", True))
         notification.set_timeout(Notify.EXPIRES_DEFAULT)
         for action, label, callback in actions:
@@ -733,13 +737,13 @@ class Window(Gtk.ApplicationWindow):
         lead = ordered[0]
         if len(ordered) == 1:
             body = (
-                f"{lead.name} holds {memory(lead.memory)} with no CPU or GPU "
+                f"{lead.name} holds {memory(lead.memory)} with low CPU and no GPU "
                 f"activity observed for {lead.idle_seconds / 60:.0f} minutes."
             )
         else:
             body = (
                 f"{len(ordered)} processes hold {memory(sum(p.memory for p in ordered))} "
-                f"with no CPU or GPU activity observed for at least "
+                f"with low CPU and no GPU activity observed for at least "
                 f"{min(p.idle_seconds for p in ordered) / 60:.0f} minutes. "
                 f"Largest: {lead.name}."
             )
@@ -912,7 +916,7 @@ class Window(Gtk.ApplicationWindow):
 class Application(Gtk.Application):
     def __init__(self):
         super().__init__(
-            application_id="io.github.vrammanager.VramManager",
+            application_id="io.github.Elhelali.VramManager",
             flags=Gio.ApplicationFlags.FLAGS_NONE,
         )
         self.window = None
@@ -929,5 +933,5 @@ class Application(Gtk.Application):
 def run_gui():
     GLib.set_application_name("VRAM Manager")
     GLib.set_prgname("vram-manager")
-    Gdk.set_program_class("VRAM Manager")
+    Gdk.set_program_class("io.github.Elhelali.VramManager")
     return Application().run(sys.argv)

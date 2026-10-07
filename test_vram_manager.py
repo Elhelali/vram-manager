@@ -10,6 +10,7 @@ from vram_manager import (
     identity,
     parse_activity,
     parse_snapshot,
+    process_activity,
     terminate,
 )
 
@@ -56,13 +57,58 @@ class ManagerTests(unittest.TestCase):
         self.assertEqual([(p.pid, p.memory) for p in processes], [(10, 150), (11, 200)])
         self.assertEqual(processes[0].gpu, "GPU (0), GPU (1)")
 
-    def test_activity_unknown_is_not_zero(self):
+    def test_listed_dashes_and_unlisted_are_unknown(self):
         readings = parse_activity(
             "0 10 C - - - - - - python\n0 11 C 0 0 - - - - python\n0 12 G 0 0 20 - - - video"
         )
         self.assertIsNone(readings[(0, 10)])
         self.assertEqual(readings[(0, 11)], 0)
         self.assertEqual(readings[(0, 12)], 20)
+        unlisted = Process(13, "Test", 200, "GPU", "C", gpu_indices=(0,))
+        self.assertIsNone(process_activity(unlisted, readings))
+
+    def test_protected_by_reported_name_when_executable_unreadable(self):
+        # Another user's display server: /proc details are unreadable (here the PID
+        # does not exist at all), but NVIDIA still reports its name.
+        p = decorate(Process(2**22 + 7, "/usr/lib/xorg/Xorg", 300, "GPU", "G"))
+        self.assertTrue(p.protected)
+        with self.assertRaises(RuntimeError):
+            terminate(p)
+
+    def test_real_pmon_output_from_an_idle_model_server(self):
+        # Captured with `nvidia-smi pmon -c 1 -s u` (driver 580, RTX 5070). The python
+        # row is a model server holding 2.9 GiB, untouched for hours.
+        output = (
+            "# gpu         pid   type     sm    mem    enc    dec    jpg    ofa    command \n"
+            "# Idx           #    C/G      %      %      %      %      %      %    name \n"
+            "    0       4271     G      -      -      -      -      -      -    Xorg           \n"
+            "    0       4474     G      2      0      -      -      -      -    gnome-shell    \n"
+            "    0    1214741     G      -      -      -      -      -      -    nautilus       \n"
+            "    0    3955346     C      -      -      -      -      -      -    python         \n"
+        )
+        readings = parse_activity(output)
+        self.assertEqual(readings[(0, 4474)], 2)
+        self.assertIsNone(readings[(0, 3955346)])
+        server = Process(
+            3955346, "Python", 2908, "GPU", "C", started="s", gpu_indices=(0,)
+        )
+        server.activity = process_activity(server, readings)
+        server.cpu_percent = 1.2  # background threads of an idle server
+        tracker = IdleTracker()
+        for now in range(0, 600, 2):
+            self.assertEqual(
+                tracker.update([server], now, minutes=10, minimum=1024), []
+            )
+        self.assertEqual(tracker.update([server], 600, minutes=10, minimum=1024), [])
+        # A measured zero with low background CPU is eligible; dashes are not.
+        server.activity = 0
+        for now in range(602, 1202, 2):
+            self.assertEqual(
+                tracker.update([server], now, minutes=10, minimum=1024), []
+            )
+        self.assertEqual(
+            tracker.update([server], 1202, minutes=10, minimum=1024), [server]
+        )
 
     def test_idle_alert_once_and_reset(self):
         tracker = IdleTracker()
@@ -228,6 +274,28 @@ class ContextTests(unittest.TestCase):
                 autostart.set_enabled(False)
                 self.assertFalse(autostart.enabled())
 
+    def test_user_uninstall_removes_login_and_keeps_settings(self):
+        import tempfile
+        import runpy
+        from pathlib import Path
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as folder:
+            home = Path(folder)
+            login = home / ".config/autostart/vram-manager.desktop"
+            config = home / ".config/vram-manager/settings.json"
+            for item in (login, config, home / ".local/bin/vram-manager"):
+                item.parent.mkdir(parents=True, exist_ok=True)
+                item.write_text("fixture")
+            with patch("pathlib.Path.home", return_value=home), patch.dict(
+                os.environ, {"XDG_CONFIG_HOME": str(home / ".config")}
+            ):
+                script = Path(__file__).parent / "packaging/uninstall_user.py"
+                runpy.run_path(str(script), run_name="__main__")
+            self.assertFalse(login.exists())
+            self.assertFalse((home / ".local/bin/vram-manager").exists())
+            self.assertEqual(config.read_text(), "fixture")
+
     def test_configurable_alert_memory_threshold(self):
         tracker = IdleTracker()
         p = Process(
@@ -260,7 +328,7 @@ class ContextTests(unittest.TestCase):
 
     def test_cpu_missing_busy_and_gap_suppress_idle(self):
         p = Process(4, "Test", 200, "GPU", "C", started="start", activity=0)
-        for cpu in (None, 0.1, 150):
+        for cpu in (None, 5, 150):
             p.cpu_percent = cpu
             tracker = IdleTracker()
             for now in range(0, 130, 10):
