@@ -15,6 +15,4 @@ A native Ubuntu app showing which NVIDIA GPU processes hold memory, with deliber
 
 Beta limits: Linux/NVIDIA only. Ubuntu 24.04 / RTX 5070 / NVIDIA 580.178.04 is the hardware baseline. Multi-GPU data is fixture-tested, not hardware-tested. Unknown activity never triggers idle alerts. Notifications are advisory; no automatic workload termination. No queue, driver installation or self-updater. Login startup requires a desktop session; top-bar support depends on the desktop indicator host. Notification actions depend on the desktop server. Memory-release feedback reflects overall GPU changes, not exclusively the terminated app.
 
-Measured background footprint on the development machine: about 62–63 MiB manager RAM, 0.49% of one CPU core for the manager, plus 3.37% for NVIDIA polling helpers during a 30-second sample. See [measurement details](RESOURCE_USE.md); these are not universal guarantees.
-
 Measured overhead in a short hidden-indicator sample: 61.8–62.8 MiB resident RAM, 0.49% of one CPU core for the manager plus 3.37% for NVIDIA polling helpers (3.86% combined). Results vary by system; see [measurement details](RESOURCE_USE.md).

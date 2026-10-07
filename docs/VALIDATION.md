@@ -9,7 +9,7 @@ Completed locally:
 
 No real user GPU workloads were terminated. Notification actions are fixture-tested with captured callbacks; the real GNOME notification server also accepted a test notification and reported support for actions. Actual human interaction with notification buttons was not tested.
 
-Limits: no second physical GPU, other driver branch or Wayland session tested. GitHub workflow has not run remotely. Idle timers use deterministic samples; no controlled real GPU busy/idle workload experiment has been run. These limits are disclosed in release notes.
+Limits: no second physical GPU, other driver branch or Wayland session tested. GitHub workflow passed for the initial public source. Idle timers use deterministic samples; no controlled real GPU busy/idle workload experiment has been run. These limits are disclosed in release notes.
 
 - Per-user installation succeeds; launching a second copy activates the first instance.
 
@@ -21,4 +21,4 @@ CPU/RAM extension: 16 unit tests pass, including interval CPU math, missing/reus
 
 Indicator update: 18 unit tests pass, including configurable alert VRAM and login-startup enable/disable. Live Ubuntu registration confirmed Id vram-manager, Status Active, the branded icon and VRAM label. Default tray mode, Open, global pause/resume and close-to-indicator were exercised. Startup desktop files validate, but the user session was not rebooted/logged out during testing. The new indicator dependency resolves in an apt installation simulation. Resource usage is measured and documented in RESOURCE_USE.md.
 
-Notification hardening: 20 unit tests pass. GUI fixtures verify seven simultaneous candidates produce one combined banner, further attempts are suppressed, and desktop suppression prevents delivery. The persisted cooldown survives restart and suppresses alerts after clock rollback; failed settings persistence prevents sending. Physical lock/unlock and a long-duration soak remain manual beta follow-up.
+Notification hardening: 20 unit tests pass. GUI fixtures verify seven simultaneous candidates produce one combined banner, further attempts are suppressed, and desktop suppression prevents delivery. The persisted cooldown survives restart and suppresses alerts after clock rollback; failed settings persistence prevents sending. The desktop decision code is also fixture-tested with locked/unlocked, Do Not Disturb and unavailable-desktop responses. Physical lock/unlock and a long-duration soak remain manual beta follow-up.

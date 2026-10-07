@@ -82,6 +82,26 @@ def main():
             window.search.set_text("")
             window.render()
             # Capture libnotify's real callback shape without posting desktop notifications.
+            with patch("ui.Gio.SettingsSchemaSource.get_default"), patch(
+                "ui.Gio.Settings.new_full"
+            ) as preferences, patch("ui.Gio.bus_get_sync") as session_bus:
+                preferences.return_value.get_boolean.return_value = False
+                assert not window.desktop_allows_alerts()
+                session_bus.assert_not_called()
+                preferences.return_value.get_boolean.return_value = True
+                session_bus.return_value.call_sync.return_value = GLib.Variant(
+                    "(b)", (True,)
+                )
+                assert not window.desktop_allows_alerts()
+                session_bus.return_value.call_sync.return_value = GLib.Variant(
+                    "(b)", (False,)
+                )
+                assert window.desktop_allows_alerts()
+                session_bus.return_value.call_sync.side_effect = GLib.Error(
+                    "Unavailable"
+                )
+                assert not window.desktop_allows_alerts()
+
             callbacks = {}
 
             class Notification:

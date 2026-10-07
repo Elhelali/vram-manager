@@ -18,6 +18,14 @@ jobs:
           desktop-file-validate packaging/vram-manager.desktop
           /usr/bin/python3 packaging/build_deb.py
           dpkg-deb --info dist/*.deb
+      - name: Install, exercise and remove package
+        run: |
+          sudo apt-get install -y ./dist/*.deb
+          /usr/bin/vram-manager --version
+          xvfb-run -a dbus-run-session -- /usr/bin/python3 gui_checks.py
+          sudo apt-get remove -y vram-manager
+          test ! -e /usr/share/vram-manager
+          test ! -e /usr/bin/vram-manager
       - uses: actions/upload-artifact@v4
         with:
           name: vram-manager-beta
