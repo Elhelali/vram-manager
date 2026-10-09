@@ -37,8 +37,10 @@ def main():
         .replace("$", "\\$")
         .replace("%", "%%")
     )
-    desktop = desktop.replace("Exec=vram-manager", f'Exec="{escaped}"')
+    # TryExec first: "Exec=vram-manager" also matches inside "TryExec=vram-manager", and a quoted
+    # TryExec path makes GNOME reject the entry (no name, generic icon in the dock).
     desktop = desktop.replace("TryExec=vram-manager", f"TryExec={launcher}")
+    desktop = desktop.replace("\nExec=vram-manager", f'\nExec="{escaped}"')
     target = PREFIX / "share/applications/io.github.Elhelali.VramManager.desktop"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(desktop)
