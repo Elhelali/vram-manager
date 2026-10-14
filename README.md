@@ -4,7 +4,7 @@
 
 See which apps hold your GPU memory, with live CPU/RAM context and optional idle alerts from a small top-bar app. Built for **Ubuntu + NVIDIA**. Nothing is stopped automatically.
 
-**[Download the Ubuntu beta](https://github.com/Elhelali/vram-manager/releases/tag/v0.1.0-beta.3)** · [Resource usage](docs/RESOURCE_USE.md)
+**[Download the Ubuntu beta](https://github.com/Elhelali/vram-manager/releases/tag/v0.1.0-beta.4)** · [Resource usage](docs/RESOURCE_USE.md)
 
 ![VRAM Manager showing Ollama holding 8.2 GiB, quiet for 42 minutes, with an example idle alert](docs/screenshot.png)
 
@@ -15,7 +15,7 @@ See which apps hold your GPU memory, with live CPU/RAM context and optional idle
 Download the `.deb` and `SHA256SUMS` from [GitHub Releases](https://github.com/Elhelali/vram-manager/releases). In your download folder:
 
 ```sh
-sudo apt install ./vram-manager_0.1.0-beta3_all.deb
+sudo apt install ./vram-manager_0.1.0-beta4_all.deb
 ```
 
 Open **VRAM Manager** from Applications, or run `vram-manager`. You need an NVIDIA driver that provides a working `nvidia-smi`. The installer does not choose or replace your GPU driver. This beta targets Ubuntu 24.04; its hardware baseline is RTX 5070 with NVIDIA 580.178.04. Other GPUs/drivers and multi-GPU setups need further hardware testing. AMD, Intel, Windows and macOS are unsupported.
